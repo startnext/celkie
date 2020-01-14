@@ -37,24 +37,29 @@ $ sudo apt install python3-docopt python3-docker
 ## Usage 
 
 ```
+  
   celkie list
-  celkie backup [--database <database>] [--incremental --base=<name_of_full_backup>]
+  celkie backup [--database <database>] [--tables <table> ... ] [--incremental]
   celkie dump --backup <name_of_full_backup> [--database <database> ] [--tables <table> ... ]
   celkie restore <backupname>
+
+
 ```
 
 ## Configuration
 
-There is a block with configuration variables in `celkie.py`.
+Configuration is done via the configuration file `celkie.yaml`.
+
+### Example configuration file
 
 ```
-CONTAINER_IMAGE = "mariadb:10.1.43"
-PORT = "13306"
-HOST = "localhost"
-BACKUP_DIR = "/var/backups/mariadb"
-DEFAULT_DATADIR = "/var/lib/mysql"
-PASSWORD = "foobar"
-USER = "root"
+container_image: "mariadb:10.1.43"
+port: "13306"
+host: "localhost"
+backup_dir: "/var/backups/mariadb"
+default_datadir: "/var/lib/mysql"
+password: "foobar"
+user: "root"
 ```
 
 ## Development 
