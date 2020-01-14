@@ -1,0 +1,7 @@
+container_image: "mariadb:10.1.43"
+port: "13306"
+host: "localhost"
+backup_dir: "/var/backups/mariadb"
+default_datadir: "/var/lib/mysql"
+password: "foobar"
+user: "root"
