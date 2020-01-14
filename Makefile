@@ -7,3 +7,6 @@ verify: up
   	-p 2222 \
   	-i .vagrant/machines/celkie/virtualbox/private_key
 
+destroy: 
+	vagrant destroy --force
+
