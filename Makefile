@@ -7,6 +7,9 @@ verify: up
   	-p 2222 \
   	-i .vagrant/machines/celkie/virtualbox/private_key
 
+build:
+	docker build -t startnext/celkie:latest .
+
 destroy: 
 	vagrant destroy --force
 

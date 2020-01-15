@@ -5,16 +5,19 @@ if ! docker info; then
   sudo usermod -aG docker vagrant
 fi
 
-apt install --yes python3-docopt python3-docker python3-pip
-
 apt update
-apt -y install software-properties-common
+apt -y install software-properties-common make
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
 add-apt-repository -y 'deb [arch=amd64,arm64,ppc64el] http://mirror.23media.de/mariadb/repo/10.1/ubuntu bionic main'
 apt update
 debconf-set-selections <<< "maria-db-server-10.1 mysql-server/root_password password foobar"
 debconf-set-selections <<< "maria-db-server-10.1 mysql-server/root_password_again password foobar"
 apt install -y mariadb-server-10.1 mariadb-backup-10.1
+
+cp /vagrant/celkie /usr/local/bin
+
+cd /vagrant 
+make build
 
 SCRIPT
 
