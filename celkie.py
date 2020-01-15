@@ -28,7 +28,7 @@ import re
 def load_conf():
     conf_file_path = os.path.join(os.path.dirname(__file__), "celkie.yaml")
     with open(conf_file_path, "r") as file:
-        return yaml.load(file)
+        return yaml.load(file, Loader=yaml.FullLoader)
 
 
 def spawn_container(datadir):
