@@ -1,3 +1,4 @@
 #!/bin/bash
 
-docker run --rm -i -v /var/run/docker.sock:/var/run/docker.sock startnext/celkie $@
+docker run --rm -i -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/backups/mariadb:/var/backups/mariadb startnext/celkie $@
