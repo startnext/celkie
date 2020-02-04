@@ -6,7 +6,7 @@ integration test:
   before_script:
     - sudo apt update
     - sudo apt install -y make ruby
-    - gem install inspec-bin
+    - sudo gem install inspec-bin
     - git clone --depth 1 https://github.com/neerolyte/vagrant-sad.git
     - max_run_age=0 ./vagrant-sad/clean-up-vbox-vms
   script:
