@@ -5,8 +5,10 @@ integration test:
     - vagrant
   before_script:
     - sudo apt update
-    - sudo apt install -y make ruby2.5 ruby2.5-dev build-essential virtualbox vagrant
+    - sudo apt install -y make ruby2.5 ruby2.5-dev build-essential virtualbox
     - sudo gem install inspec-bin 
+    - which vagrant || wget 'https://releases.hashicorp.com/vagrant/2.2.7/vagrant_2.2.7_x86_64.deb' -P /tmp  
+    - which vagrant || find /tmp -name 'vagrant*' -exec sudo dpkg -i {} \;
     - git clone --depth 1 https://github.com/neerolyte/vagrant-sad.git
     - max_run_age=0 ./vagrant-sad/clean-up-vbox-vms
   script:
