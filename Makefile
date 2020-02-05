@@ -3,9 +3,11 @@ up:
 
 verify: up
 	inspec exec test/celike_test.rb \
-	  -t ssh://vagrant@127.0.0.1 \
+	  --shell -t ssh://vagrant@127.0.0.1 \
   	-p 2222 \
-  	-i .vagrant/machines/celkie/virtualbox/private_key
+  	-i .vagrant/machines/celkie/virtualbox/private_key \
+        --chef-license=accept-no-persist
+
 
 build:
 	docker build -t startnext/celkie:latest .
