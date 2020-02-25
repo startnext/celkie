@@ -6,8 +6,8 @@
 
 Usage:
   celkie list
-  celkie backup [--database <database>] [--tables <table> ... ] [--incremental]
-  celkie dump --backup <name_of_full_backup> [--database <database> ] [--tables <table> ... ]
+  celkie backup [--database=<database>] [--tables=<table> ... ] [--incremental]
+  celkie dump --backup=<name_of_full_backup> [--database=<database> ] [--tables=<table,table> ]
   celkie restore <backupname>
 
 Options:
@@ -17,6 +17,7 @@ Options:
 
 import time
 import os
+import sys
 import socket
 import shutil
 from docopt import docopt
@@ -205,6 +206,7 @@ def wait_for_port(host, port):
 
 
 def create_dump(name_of_full_backup, database, tables):
+    print(tables)
     # If arguments are not used they come as boolean FALSE by docopt
     # and have to before joining opts
     print(
@@ -216,7 +218,10 @@ def create_dump(name_of_full_backup, database, tables):
     if database:
         # Password parameter needs no space between -p and password
         dump_name = "_".join(
-            filter(bool, [name_of_full_backup, database, " ".join(tables), ".sql"])
+            filter(
+                bool,
+                [name_of_full_backup, database, tables[0].replace(" ", "_"), ".sql"],
+            )
         )
         dump_path = BACKUP_DIR + "/" + dump_name
         opts = [database, " ".join(tables), "-u", USER, "-p" + PASSWORD, ">", dump_path]
@@ -241,19 +246,23 @@ def create_dump(name_of_full_backup, database, tables):
 
 
 def main(arguments):
-    # print(arguments)
+    print(arguments)
+    # Replace the commas with whitespace as separator between tables.
+    tables = [t.replace(",", " ") for t in arguments["--tables"]]
+    print(tables)
     if arguments["backup"]:
         run_backup(
-            arguments["<database>"], arguments["<table>"], arguments["--incremental"],
+            arguments["--database"], tables, arguments["--incremental"],
         )
     if arguments["list"]:
         list_available_backups()
     if arguments["dump"]:
-        create_dump(
-            arguments["<name_of_full_backup>"],
-            arguments["<database>"],
-            arguments["<table>"],
-        )
+        if arguments["--backup"]:
+            create_dump(
+                arguments["--backup"], arguments["--database"], tables,
+            )
+        else:
+            sys.exit("Please specify the backup to use for dumping.")
 
 
 if __name__ == "__main__":
