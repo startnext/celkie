@@ -207,30 +207,48 @@ def wait_for_port(host, port):
 
 def create_dump(name_of_full_backup, database, tables):
     print(tables)
-    # If arguments are not used they come as boolean FALSE by docopt
-    # and have to before joining opts
     print(
         "Create logical database from physical database backup " + name_of_full_backup
     )
     temp_datadir = "/tmp/" + name_of_full_backup + "/var/lib/mysql"
     print("Used temporary DATADIR: " + temp_datadir)
 
-    if database:
-        # Password parameter needs no space between -p and password
-        dump_name = "_".join(
-            filter(
-                bool,
-                [name_of_full_backup, database, tables[0].replace(" ", "_"), ".sql"],
-            )
-        )
-        dump_path = BACKUP_DIR + "/" + dump_name
-        opts = [database, " ".join(tables), "-u", USER, "-p" + PASSWORD, ">", dump_path]
-    # print(opts)
+    name_elements = []
+    # If arguments are not used they come as boolean FALSE by docopt
+    # and have to be filtered before joining opts.
+    # Empty multiple options come as empty list [] and have to be
+    # set to boolean False to be filtered out afterwards.
+    if not tables:
+        t = False
     else:
-        dump_name = "_".join(filter(bool, [name_of_full_backup, ".sql"]))
-        dump_path = BACKUP_DIR + "/" + dump_name
-        opts = ["--all-databases", "-u", USER, "-p" + PASSWORD, ">", dump_path]
+        t = tables[0].replace(" ", "_")
 
+    for e in filter(
+        bool, [name_of_full_backup, database, t,".sql"]
+    ):
+        if e != [] or None:
+            name_elements.append(e)
+    print(name_elements)
+    dump_name = "_".join(name_elements)
+
+    # if database:
+    #    # Password parameter needs no space between -p and password
+    #    dump_name = "_".join(
+    #        filter(
+    #            bool,
+    #            [name_of_full_backup, database, tables[0].replace(" ", "_"), ".sql"],
+    #        )
+    #    )
+    #    dump_path = BACKUP_DIR + "/" + dump_name
+    #    opts = [database, " ".join(tables), "-u", USER, "-p" + PASSWORD, ">", dump_path]
+    ## print(opts)
+    # else:
+    #    dump_name = "_".join(filter(bool, [name_of_full_backup, ".sql"]))
+    #    dump_path = BACKUP_DIR + "/" + dump_name
+    #    opts = ["--all-databases", "-u", USER, "-p" + PASSWORD, ">", dump_path]
+
+    dump_path = BACKUP_DIR + "/" + dump_name
+    opts = ["--all-databases", "-u", USER, "-p" + PASSWORD, ">", dump_path]
     prepare_backup_for_restore(name_of_full_backup)
     restore_backup(name_of_full_backup, temp_datadir)
     spawn_container(temp_datadir)
@@ -249,7 +267,7 @@ def main(arguments):
     print(arguments)
     # Replace the commas with whitespace as separator between tables.
     tables = [t.replace(",", " ") for t in arguments["--tables"]]
-    print(tables)
+    # print(tables)
     if arguments["backup"]:
         run_backup(
             arguments["--database"], tables, arguments["--incremental"],
