@@ -33,6 +33,11 @@ else
   echo 'Example database already in place.'
 fi
 
+while ! mysqladmin ping -h127.0.0.1 --silent; do
+    sleep 1
+    echo "Waiting for MariaDB instance to get ready..." 
+done
+
 SCRIPT
 
 Vagrant.configure(2) do |config|
