@@ -4,6 +4,8 @@
 
 """Celkie the Startnext database backup/recovery helper
 
+
+# TODO add passwort parameter for restore
 Usage:
   celkie list
   celkie backup [--database=<database>] [--tables=<table> ... ] [--incremental]
@@ -206,7 +208,6 @@ def wait_for_port(host, port):
 
 
 def create_dump(name_of_full_backup, database, tables):
-    print(tables)
     print(
         "Create logical database from physical database backup " + name_of_full_backup
     )
@@ -228,7 +229,7 @@ def create_dump(name_of_full_backup, database, tables):
     ):
         if e != [] or None:
             name_elements.append(e)
-    print(name_elements)
+    #print(name_elements)
     dump_name = "_".join(name_elements)
 
     # if database:
@@ -248,7 +249,11 @@ def create_dump(name_of_full_backup, database, tables):
     #    opts = ["--all-databases", "-u", USER, "-p" + PASSWORD, ">", dump_path]
 
     dump_path = BACKUP_DIR + "/" + dump_name
-    opts = ["--all-databases", "-u", USER, "-p" + PASSWORD, ">", dump_path]
+    opts = ["-u", USER, "-p" + PASSWORD, ">", dump_path]
+    if not database:
+        opts.insert(0,"--all-databases")
+    else:
+        opts.insert(0,"--database " + database + " " + " ".join(tables))
     prepare_backup_for_restore(name_of_full_backup)
     restore_backup(name_of_full_backup, temp_datadir)
     spawn_container(temp_datadir)
@@ -264,7 +269,7 @@ def create_dump(name_of_full_backup, database, tables):
 
 
 def main(arguments):
-    print(arguments)
+    #print(arguments)
     # Replace the commas with whitespace as separator between tables.
     tables = [t.replace(",", " ") for t in arguments["--tables"]]
     # print(tables)
