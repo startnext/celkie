@@ -10,6 +10,7 @@ verify: up
 
 
 build:
+	pip freeze > requirements.txt
 	docker build -t startnext/celkie:latest .
 
 destroy: 
