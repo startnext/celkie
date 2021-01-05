@@ -16,22 +16,20 @@ Celkie bundles common workflows when working with SQL databases and MariaDB/MySQ
 
 ## Requirements
 
-* Python >=3.6
-* Docker >= 19.03.5
-* Docker Python SDK 2.5.1
-* docopt Python 0.6.2
+- Docker ≥ 19.03
+- Python ≥ 3.8
+
+Python requirements are handled by Pipenv see at the corresponding `Pipfile`
 
 ## Install 
 
 Clone this repository.
 
 
-### Install required Python modules
-
-With Ubuntu 18.04 Bionic:
+### Install required Python packagess via Pipenv
 
 ```
-$ sudo apt install python3-docopt python3-docker
+ $ pipenv install
 ```
 
 ## Usage 
