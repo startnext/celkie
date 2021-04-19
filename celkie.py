@@ -310,7 +310,7 @@ def main(arguments):
                     name_of_full_backup, name_of_incremental_backup
                 )
             restore_backup(name_of_full_backup, temp_datadir)
-            create_dump(full_backup_name, arguments["--database"], tables)
+            create_dump(name_of_full_backup, arguments["--database"], tables)
             # FIXME: Dumps from incremental backups are not reflected in the filename of the dump
 
         else:
