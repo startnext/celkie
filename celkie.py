@@ -140,14 +140,14 @@ def prepare_backup_for_restore(name_of_backup, name_of_incremental_backup):
         )
         # As the Docker API runs async we need different names else we run
         # into name collision when container are stopped/fast in sequence.
-        container_name_suffix="_incremental"
+        container_name_suffix = "_incremental"
     else:
-        container_name_suffix="_full"
+        container_name_suffix = "_full"
     container = client.containers.run(
         CONTAINER_IMAGE,
         ["/usr/bin/mariabackup"] + opts,
         auto_remove=True,
-        name="celkie-mariadb_restore_prepare" + container_name_suffix
+        name="celkie-mariadb_restore_prepare" + container_name_suffix,
         detach=True,
         stdout=True,
         stderr=True,
