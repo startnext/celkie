@@ -290,7 +290,7 @@ def main(arguments):
             name_of_full_backup = arguments["--backup"]
             name_of_incremental_backup = arguments["--incremental-backup"]
             temp_datadir = get_temp_datadir(name_of_full_backup)
-            prepare_backup_for_restore(name_of_full_backup)
+            prepare_backup_for_restore(name_of_full_backup, None)
             if arguments["--incremental-backup"]:
                 prepare_backup_for_restore(
                     name_of_full_backup, name_of_incremental_backup
