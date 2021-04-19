@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright (C) 2019, 2020 Gunter Miegel startnext.com
+# Copyright (C) 2019, 2020, 2021 Gunter Miegel startnext.com
 
 """Celkie the Startnext database backup/recovery helper
 
@@ -9,7 +9,7 @@
 Usage:
   celkie list
   celkie backup [--database=<database>] [--tables=<table> ... ] [--incremental]
-  celkie dump --backup=<name_of_full_backup> [--database=<database> ] [--tables=<table,table> ]
+  celkie dump --backup=<name_of_full_backup> [--incremental-backup=<name_of_incremental_backup>] [--database=<database> ] [--tables=<table,table> ]
   celkie restore <backupname>
 
 Options:
@@ -43,7 +43,10 @@ def spawn_container(datadir):
             BACKUP_DIR: {"bind": BACKUP_DIR, "mode": "rw"},
             datadir: {"bind": "/var/lib/mysql", "mode": "rw"},
         },
-        environment=["MYSQL_ROOT_PASSWORD=" + PASSWORD, "MYSQL_TCP_PORT=" + PORT,],
+        environment=[
+            "MYSQL_ROOT_PASSWORD=" + PASSWORD,
+            "MYSQL_TCP_PORT=" + PORT,
+        ],
         ports={"3306/tcp": ("127.0.0.1", PORT)},
         name="celkie-mariadb",
     )
@@ -118,22 +121,25 @@ def run_backup(database, tables, incremental):
     print("Created physical backup at" + target_dir)
 
 
-def prepare_backup_for_restore(name_of_full_backup):
-    print("Prepare " + name_of_full_backup + " for restore")
+def prepare_backup_for_restore(name_of_backup, name_of_incremental_backup):
+    print("Prepare " + name_of_backup + name_of_incremental_backup + " for restore")
     client = docker.from_env()
+    opts = ["--prepare", "--target-dir=" + BACKUP_DIR + "/" + name_of_backup]
+    if name_of_incremental_backup:
+        opts.append(
+            "--incremental-dir=" + BACKUP_DIR + "/" + name_of_incremental_backup
+        )
     container = client.containers.run(
         CONTAINER_IMAGE,
-        [
-            "/usr/bin/mariabackup",
-            "--prepare",
-            "--target-dir=" + BACKUP_DIR + "/" + name_of_full_backup,
-        ],
+        ["/usr/bin/mariabackup", opts],
         auto_remove=True,
         name="celkie-mariadb_restore_prepare",
         detach=True,
         stdout=True,
         stderr=True,
-        volumes={BACKUP_DIR: {"bind": BACKUP_DIR, "mode": "rw"},},
+        volumes={
+            BACKUP_DIR: {"bind": BACKUP_DIR, "mode": "rw"},
+        },
     )
     for line in container.logs(stream="True"):
         print(line.decode())
@@ -144,8 +150,8 @@ def cleanup_datadir(dir):
     shutil.rmtree("dir", ignore_errors=True)
 
 
-def restore_backup(name_of_full_backup, datadir):
-    print("Start restore of the backup " + name_of_full_backup + " to " + datadir)
+def restore_backup(name_of_backup, datadir):
+    print("Start restore of the backup " + name_of_backup + " to " + datadir)
     # FIXME: On call this function if the directory is really there
     cleanup_datadir(datadir)
     client = docker.from_env()
@@ -154,7 +160,7 @@ def restore_backup(name_of_full_backup, datadir):
         [
             "/usr/bin/mariabackup",
             "--copy-back",
-            "--target-dir=" + BACKUP_DIR + "/" + name_of_full_backup,
+            "--target-dir=" + BACKUP_DIR + "/" + name_of_backup,
         ],
         auto_remove=True,
         name="celkie-mariadb_restore",
@@ -207,13 +213,17 @@ def wait_for_port(host, port):
     #    s.close
 
 
-def create_dump(name_of_full_backup, database, tables):
-    print(
-        "Create logical database from physical database backup " + name_of_full_backup
-    )
-    temp_datadir = "/tmp/" + name_of_full_backup + "/var/lib/mysql"
+def get_temp_datadir(name_of_backup):
+    temp_datadir = "/tmp/" + name_of_backup + "/var/lib/mysql"
     print("Used temporary DATADIR: " + temp_datadir)
+    return temp_datadir
 
+
+def create_dump(name_of_backup, database, tables):
+    print(
+        "Create logical database dump from physical database backup " + name_of_backup
+    )
+    temp_datadir = get_temp_datadir(name_of_backup)
     name_elements = []
     # If arguments are not used they come as boolean FALSE by docopt
     # and have to be filtered before joining opts.
@@ -224,12 +234,10 @@ def create_dump(name_of_full_backup, database, tables):
     else:
         t = tables[0].replace(" ", "_")
 
-    for e in filter(
-        bool, [name_of_full_backup, database, t,".sql"]
-    ):
+    for e in filter(bool, [name_of_backup, database, t, ".sql"]):
         if e != [] or None:
             name_elements.append(e)
-    #print(name_elements)
+    # print(name_elements)
     dump_name = "_".join(name_elements)
 
     # if database:
@@ -237,28 +245,24 @@ def create_dump(name_of_full_backup, database, tables):
     #    dump_name = "_".join(
     #        filter(
     #            bool,
-    #            [name_of_full_backup, database, tables[0].replace(" ", "_"), ".sql"],
+    #            [name_of_backup, database, tables[0].replace(" ", "_"), ".sql"],
     #        )
     #    )
     #    dump_path = BACKUP_DIR + "/" + dump_name
     #    opts = [database, " ".join(tables), "-u", USER, "-p" + PASSWORD, ">", dump_path]
     ## print(opts)
     # else:
-    #    dump_name = "_".join(filter(bool, [name_of_full_backup, ".sql"]))
+    #    dump_name = "_".join(filter(bool, [name_of_backup, ".sql"]))
     #    dump_path = BACKUP_DIR + "/" + dump_name
     #    opts = ["--all-databases", "-u", USER, "-p" + PASSWORD, ">", dump_path]
-
     dump_path = BACKUP_DIR + "/" + dump_name
     opts = ["-u", USER, "-p" + PASSWORD, ">", dump_path]
     if not database:
-        opts.insert(0,"--all-databases")
+        opts.insert(0, "--all-databases")
     else:
-        opts.insert(0,"--database " + database + " " + " ".join(tables))
-    prepare_backup_for_restore(name_of_full_backup)
-    restore_backup(name_of_full_backup, temp_datadir)
+        opts.insert(0, "--database " + database + " " + " ".join(tables))
     spawn_container(temp_datadir)
     wait_for_port(HOST, PORT)
-
     exec_command(
         "celkie-mariadb",
         ["sh", "-c", "/usr/bin/mysqldump -h 127.0.0.1 " + " ".join(filter(bool, opts))],
@@ -269,21 +273,30 @@ def create_dump(name_of_full_backup, database, tables):
 
 
 def main(arguments):
-    #print(arguments)
+    # print(arguments)
     # Replace the commas with whitespace as separator between tables.
     tables = [t.replace(",", " ") for t in arguments["--tables"]]
     # print(tables)
     if arguments["backup"]:
         run_backup(
-            arguments["--database"], tables, arguments["--incremental"],
+            arguments["--database"],
+            tables,
+            arguments["--incremental"],
         )
     if arguments["list"]:
         list_available_backups()
     if arguments["dump"]:
         if arguments["--backup"]:
-            create_dump(
-                arguments["--backup"], arguments["--database"], tables,
-            )
+            name_of_full_backup = arguments["-backup"]
+            name_of_incremental_backup = arguments["name_of_incremental_backup"]
+            temp_datadir = get_temp_datadir(name_of_full_backup)
+            prepare_backup_for_restore(name_of_full_backup)
+            if arguments["--incremental-backup"]:
+                prepare_backup_for_restore(
+                    name_of_full_backup, name_of_incremental_backup
+                )
+            restore_backup(name_of_full_backup, temp_datadir)
+            create_dump(name_of_incremental_backup, tables)
         else:
             sys.exit("Please specify the backup to use for dumping.")
 
