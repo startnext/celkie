@@ -140,7 +140,7 @@ def prepare_backup_for_restore(name_of_backup, name_of_incremental_backup):
         )
     container = client.containers.run(
         CONTAINER_IMAGE,
-        ["/usr/bin/mariabackup", opts],
+        ["/usr/bin/mariabackup"] + opts,
         auto_remove=True,
         name="celkie-mariadb_restore_prepare",
         detach=True,
