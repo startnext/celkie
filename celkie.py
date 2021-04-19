@@ -122,7 +122,16 @@ def run_backup(database, tables, incremental):
 
 
 def prepare_backup_for_restore(name_of_backup, name_of_incremental_backup):
-    print("Prepare " + name_of_backup + name_of_incremental_backup + " for restore")
+    if name_of_incremental_backup:
+        print(
+            "Prepare base backup "
+            + name_of_backup
+            + "incremental "
+            + name_of_incremental_backup
+            + " for restore"
+        )
+    else:
+        print("Prepare " + name_of_backup + " for restore")
     client = docker.from_env()
     opts = ["--prepare", "--target-dir=" + BACKUP_DIR + "/" + name_of_backup]
     if name_of_incremental_backup:
