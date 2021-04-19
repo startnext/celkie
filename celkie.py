@@ -287,8 +287,8 @@ def main(arguments):
         list_available_backups()
     if arguments["dump"]:
         if arguments["--backup"]:
-            name_of_full_backup = arguments["-backup"]
-            name_of_incremental_backup = arguments["name_of_incremental_backup"]
+            name_of_full_backup = arguments["--backup"]
+            name_of_incremental_backup = arguments["--incremental-backup"]
             temp_datadir = get_temp_datadir(name_of_full_backup)
             prepare_backup_for_restore(name_of_full_backup)
             if arguments["--incremental-backup"]:
