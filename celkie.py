@@ -274,7 +274,7 @@ def create_dump(name_of_backup, database, tables):
     if not database:
         opts.insert(0, "--all-databases")
     else:
-        opts.insert(0, "--databases " + database + " " + " ".join(tables))
+        opts.insert(0, database + " " + " ".join(tables))
     spawn_container(temp_datadir)
     wait_for_port(HOST, PORT)
     exec_command(
