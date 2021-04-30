@@ -38,7 +38,7 @@ Clone this repository.
   
   celkie list
   celkie backup [--database <database>] [--tables <table> ... ] [--incremental]
-  celkie dump --backup <name_of_full_backup> [--database <database> ] [--tables <table> ... ]
+  celkie dump --backup=<name_of_full_backup> [--incremental-backup=<name_of_incremental_backup>] [--database=<database> ] [--tables=<table,table> ]
   celkie restore <backupname>
 
 
